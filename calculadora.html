@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>Calculadora</title>
+    </head>
+    <body>
+        <h1>Calculadora</h1>
+        
+        <input type="number" id="numUm" placeholder="Primeiro número">
+        <input type="number" id="numDois" placeholder="Segundo número">
+        
+        <button onclick="fazerConta('somar')">Somar</button>
+        <button onclick="fazerConta('subtrair')">Subtrair</button>
+        <button onclick="fazerConta('multiplicar')">Multiplicar</button>
+        <button onclick="fazerConta('dividir')">Dividir</button>
+
+        <h2 id="visorResultado">O resultado vai aparecer aqui...</h2>
+
+        <script>
+            function fazerConta(tipoOperacao) {
+                let numUm = parseFloat(document.getElementById("numUm").value);
+                let numDois = parseFloat(document.getElementById("numDois").value);
+                let resultadoFinal = 0;
+
+                switch(tipoOperacao) {
+                    case 'somar':
+                        resultadoFinal = numUm + numDois;
+                        break;
+                    case 'subtrair':
+                        resultadoFinal = numUm - numDois;
+                        break;
+                    case 'multiplicar':
+                        resultadoFinal = numUm * numDois;
+                        break;
+                    case 'dividir':
+                        resultadoFinal = numUm / numDois;
+                        break;
+                }
+
+                document.getElementById("visorResultado").innerHTML = "Resultado: " + resultadoFinal;
+            }
+        </script>
+    </body>
+</html>
