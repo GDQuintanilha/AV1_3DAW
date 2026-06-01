@@ -1,9 +1,8 @@
 <?php
-$msg = "";
-
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $idBusca = $_POST['idPergunta'];
     $apagou = false;
+    $msg = "";
     
     if(file_exists("perguntasMultipla.txt")){
         $linhas = file("perguntasMultipla.txt");
@@ -15,9 +14,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             if($linhaAtual != ""){
                 $pedacos = explode(";", $linhaAtual);
                 if($pedacos[0] != $idBusca){
-                    $listaNova = $listaNova . $linhaAtual; // Guarda se for diferente
+                    $listaNova = $listaNova . $linhaAtual;
                 } else {
-                    $apagou = true; // Ignora se for igual (excluindo)
+                    $apagou = true;
                 }
             }
             $i++;
@@ -44,7 +43,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             }
             $i++;
         }
-        // Sobrescreve o arquivo
         $arq = fopen("perguntasTexto.txt", "w");
         fwrite($arq, $listaNova);
         fclose($arq);
@@ -55,6 +53,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     } else {
         $msg = "Erro: ID da pergunta não encontrado em nenhum arquivo.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode(["mensagem" => $msg]);
+    exit;
 }
 ?>
 
@@ -66,13 +68,32 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         <h1>Excluir Pergunta</h1>
         <p>Atenção: Esta ação apagará a pergunta e suas respostas permanentemente.</p>
         
-        <form action="" method="POST">
+        <form id="formExcluir" onsubmit="excluirPergunta(event)">
             ID da Pergunta a ser excluída: <br>
             <input type="text" name="idPergunta" required>
             <br><br>
             <input type="submit" value="Excluir Definitivamente">
         </form>
         
-        <p><strong><?php echo $msg; ?></strong></p>
+        <p><strong id="mensagemNaTela"></strong></p>
+
+        <script>
+            function excluirPergunta(evento) {
+                evento.preventDefault();
+                
+                let formulario = document.getElementById("formExcluir");
+                let dados = new FormData(formulario);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: dados
+                })
+                .then(resposta => resposta.json())
+                .then(retorno => {
+                    document.getElementById("mensagemNaTela").innerHTML = retorno.mensagem;
+                    formulario.reset();
+                });
+            }
+        </script>
     </body>
 </html>
