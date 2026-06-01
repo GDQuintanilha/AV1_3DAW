@@ -1,6 +1,4 @@
 <?php
-$msg = "";
-
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $idPergunta = $_POST['idPergunta'];
     $enunciado = $_POST['enunciado'];
@@ -10,16 +8,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $opD = $_POST['opD'];
     $correta = $_POST['correta'];
     
-    $nomeArquivo = "perguntas_multipla.txt";
+    $nomeArquivo = "perguntasMultipla.txt";
+    $msg = "";
 
     if(!file_exists($nomeArquivo)){
-        $arqPergunta = fopen($nomeArquivo, "w") or die("Erro ao criar arquivo");
+        $arqPergunta = fopen($nomeArquivo, "w");
         $cabecalho = "id;enunciado;opA;opB;opC;opD;correta\n";
         fwrite($arqPergunta, $cabecalho);
         fclose($arqPergunta);
     }
 
-    $arqPergunta = fopen($nomeArquivo, "a") or die("Falha ao abrir o arquivo");
+    $arqPergunta = fopen($nomeArquivo, "a");
     
     $linha = $idPergunta . ";" . $enunciado . ";" . $opA . ";" . $opB . ";" . $opC . ";" . $opD . ";" . $correta . "\n";
     fwrite($arqPergunta, $linha);
@@ -27,6 +26,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     fclose($arqPergunta);
 
     $msg = "Pergunta de múltipla escolha cadastrada com sucesso!";
+
+    header('Content-Type: application/json');
+    echo json_encode(["mensagem" => $msg]);
+    exit;
 }
 ?>
 
@@ -37,7 +40,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <body>
         <h1>Nova Pergunta (Múltipla Escolha)</h1>
 
-        <form action="" method="POST">
+        <form id="formCriarMultipla" onsubmit="criarPergunta(event)">
             ID da Pergunta: <br>
             <input type="text" name="idPergunta" required>
             <br><br>
@@ -58,7 +61,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="submit" value="Salvar Pergunta">
         </form>
         
-        <p><strong><?php echo $msg; ?></strong></p>
+        <p><strong id="mensagemNaTela"></strong></p>
 
+        <script>
+            function criarPergunta(evento) {
+                evento.preventDefault();
+                
+                let formulario = document.getElementById("formCriarMultipla");
+                let dados = new FormData(formulario);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: dados
+                })
+                .then(resposta => resposta.json())
+                .then(retorno => {
+                    document.getElementById("mensagemNaTela").innerHTML = retorno.mensagem;
+                    formulario.reset();
+                });
+            }
+        </script>
     </body>
 </html>
