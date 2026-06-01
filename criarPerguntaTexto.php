@@ -1,21 +1,20 @@
 <?php
-$msg = "";
-
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $idPergunta = $_POST['idPergunta'];
     $enunciado = $_POST['enunciado'];
     $resposta = $_POST['resposta'];
     
-    $nome_arquivo = "perguntasTexto.txt";
+    $nomeArquivo = "perguntasTexto.txt";
+    $msg = "";
 
-    if(!file_exists($nome_arquivo)){
-        $arqPergunta = fopen($nome_arquivo, "w") or die("Erro ao criar arquivo");
+    if(!file_exists($nomeArquivo)){
+        $arqPergunta = fopen($nomeArquivo, "w");
         $cabecalho = "id;enunciado;resposta\n";
         fwrite($arqPergunta, $cabecalho);
         fclose($arqPergunta);
     }
 
-    $arqPergunta = fopen($nome_arquivo, "a") or die("Falha ao abrir o arquivo");
+    $arqPergunta = fopen($nomeArquivo, "a");
     
     $linha = $idPergunta . ";" . $enunciado . ";" . $resposta . "\n";
     fwrite($arqPergunta, $linha);
@@ -23,6 +22,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     fclose($arqPergunta);
 
     $msg = "Pergunta de texto cadastrada com sucesso!";
+
+    header('Content-Type: application/json');
+    echo json_encode(["mensagem" => $msg]);
+    exit;
 }
 ?>
 
@@ -34,7 +37,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h1>Nova Pergunta de Texto</h1>
         <p>Preencha os dados do desafio para o treinamento corporativo.</p>
 
-        <form action="" method="POST">
+        <form id="formCriarTexto" onsubmit="criarPerguntaTexto(event)">
             ID da Pergunta (Ex: P01): <br>
             <input type="text" name="idPergunta" required>
             <br><br>
@@ -50,7 +53,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="submit" value="Salvar Pergunta">
         </form>
         
-        <p><strong><?php echo $msg; ?></strong></p>
+        <p><strong id="mensagemNaTela"></strong></p>
 
+        <script>
+            function criarPerguntaTexto(evento) {
+                evento.preventDefault();
+                
+                let formulario = document.getElementById("formCriarTexto");
+                let dados = new FormData(formulario);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: dados
+                })
+                .then(resposta => resposta.json())
+                .then(retorno => {
+                    document.getElementById("mensagemNaTela").innerHTML = retorno.mensagem;
+                    formulario.reset();
+                });
+            }
+        </script>
     </body>
 </html>
