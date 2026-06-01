@@ -1,6 +1,4 @@
 <?php
-$msg = "";
-
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $idPergunta = $_POST['idPergunta'];
     $enunciado = $_POST['enunciado'];
@@ -10,6 +8,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $listaNova = "";
     
     $nomeArquivo = "perguntasTexto.txt"; 
+    $msg = "";
 
     if(file_exists($nomeArquivo)){
         $linhas = file($nomeArquivo);
@@ -26,7 +25,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $linhaNova = $idPergunta . ";" . $enunciado . ";" . $resposta . "\n";
                     $listaNova = $listaNova . $linhaNova;
                     $perguntaEncontrada = true;
-                    
                 } else {
                     $listaNova = $listaNova . $linhaAtual;
                 }
@@ -35,7 +33,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         if ($perguntaEncontrada == true) {
-            $arqPergunta = fopen($nomeArquivo, "w") or die("Falha ao abrir o arquivo");
+            $arqPergunta = fopen($nomeArquivo, "w");
             fwrite($arqPergunta, $listaNova);
             fclose($arqPergunta);
             $msg = "Pergunta de texto alterada com sucesso!";
@@ -45,6 +43,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $msg = "Erro: O arquivo de perguntas de texto ainda não existe.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode(["mensagem" => $msg]);
+    exit;
 }
 ?>
 
@@ -56,7 +58,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h1>Alterar Pergunta de Texto</h1>
         <p>Digite o ID da pergunta que deseja alterar e preencha com os novos dados.</p>
 
-        <form action="" method="POST">
+        <form id="formAlterarTexto" onsubmit="alterarDadosTexto(event)">
             ID da Pergunta atual: <br>
             <input type="text" name="idPergunta" required>
             <br><br>
@@ -72,7 +74,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="submit" value="Salvar Alterações">
         </form>
         
-        <p><strong><?php echo $msg; ?></strong></p>
+        <p><strong id="mensagemNaTela"></strong></p>
 
+        <script>
+            function alterarDadosTexto(evento) {
+                evento.preventDefault();
+                
+                let formulario = document.getElementById("formAlterarTexto");
+                let dados = new FormData(formulario);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: dados
+                })
+                .then(resposta => resposta.json())
+                .then(retorno => {
+                    document.getElementById("mensagemNaTela").innerHTML = retorno.mensagem;
+                    formulario.reset();
+                });
+            }
+        </script>
     </body>
 </html>
