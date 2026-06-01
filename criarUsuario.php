@@ -1,21 +1,20 @@
 <?php
-$msg = "";
-
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nome = $_POST['nome'];
     $email = $_POST['email'];
     $senha = $_POST['senha'];
     
     $nomeArquivo = "usuarios.txt";
+    $msg = "";
 
     if(!file_exists($nomeArquivo)){
-        $arqUsuario = fopen($nomeArquivo, "w") or die("Erro ao criar arquivo");
+        $arqUsuario = fopen($nomeArquivo, "w");
         $cabecalho = "nome;email;senha\n";
         fwrite($arqUsuario, $cabecalho);
         fclose($arqUsuario);
     }
 
-    $arqUsuario = fopen($nomeArquivo, "a") or die("Falha ao abrir o arquivo");
+    $arqUsuario = fopen($nomeArquivo, "a");
     
     $linha = $nome . ";" . $email . ";" . $senha . "\n";
     fwrite($arqUsuario, $linha);
@@ -23,6 +22,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     fclose($arqUsuario);
 
     $msg = "Usuário cadastrado com sucesso!";
+
+    header('Content-Type: application/json');
+    echo json_encode(["mensagem" => $msg]);
+    exit;
 }
 ?>
 
@@ -33,7 +36,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <body>
         <h1>Novo Usuário (Gestor)</h1>
 
-        <form action="" method="POST">
+        <form id="formCriarUsuario" onsubmit="criarUsuario(event)">
             Nome do Gestor: <br>
             <input type="text" name="nome" required>
             <br><br>
@@ -49,7 +52,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="submit" value="Salvar Usuário">
         </form>
         
-        <p><strong><?php echo $msg; ?></strong></p>
+        <p><strong id="mensagemNaTela"></strong></p>
 
+        <script>
+            function criarUsuario(evento) {
+                evento.preventDefault();
+                
+                let formulario = document.getElementById("formCriarUsuario");
+                let dados = new FormData(formulario);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: dados
+                })
+                .then(resposta => resposta.json())
+                .then(retorno => {
+                    document.getElementById("mensagemNaTela").innerHTML = retorno.mensagem;
+                    formulario.reset();
+                });
+            }
+        </script>
     </body>
 </html>
