@@ -1,6 +1,4 @@
 <?php
-$msg = "";
-
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $idPergunta = $_POST['idPergunta'];
     $enunciado = $_POST['enunciado'];
@@ -12,10 +10,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $perguntaEncontrada = false;
     $listaNova = "";
-    $nome_arquivo = "perguntas_multipla.txt";
+    $nomeArquivo = "perguntasMultipla.txt";
+    $msg = "";
 
-    if(file_exists($nome_arquivo)){
-        $linhas = file($nome_arquivo);
+    if(file_exists($nomeArquivo)){
+        $linhas = file($nomeArquivo);
         $quantidadeLinhas = count($linhas);
         $i = 0;
 
@@ -26,11 +25,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pedacos = explode(";", $linhaAtual);
 
                 if($pedacos[0] == $idPergunta) {
-                    
                     $linhaNova = $idPergunta . ";" . $enunciado . ";" . $opA . ";" . $opB . ";" . $opC . ";" . $opD . ";" . $correta . "\n";
                     $listaNova = $listaNova . $linhaNova;
                     $perguntaEncontrada = true;
-                    
                 } else {
                     $listaNova = $listaNova . $linhaAtual;
                 }
@@ -39,7 +36,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         if ($perguntaEncontrada == true) {
-            $arqPergunta = fopen($nome_arquivo, "w") or die("Falha ao abrir o arquivo");
+            $arqPergunta = fopen($nomeArquivo, "w");
             fwrite($arqPergunta, $listaNova);
             fclose($arqPergunta);
             $msg = "Pergunta de múltipla escolha alterada com sucesso!";
@@ -49,6 +46,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $msg = "Erro: O arquivo de perguntas ainda não existe.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode(["mensagem" => $msg]);
+    exit;
 }
 ?>
 
@@ -60,7 +61,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h1>Alterar Pergunta (Múltipla Escolha)</h1>
         <p>Digite o ID da pergunta que deseja alterar e preencha todos os novos dados.</p>
 
-        <form action="" method="POST">
+        <form id="formAlterar" onsubmit="alterarDados(event)">
             ID da Pergunta atual: <br>
             <input type="text" name="idPergunta" required>
             <br><br>
@@ -81,7 +82,25 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="submit" value="Salvar Alterações">
         </form>
         
-        <p><strong><?php echo $msg; ?></strong></p>
+        <p><strong id="mensagemNaTela"></strong></p>
 
+        <script>
+            function alterarDados(evento) {
+                evento.preventDefault();
+                
+                let formulario = document.getElementById("formAlterar");
+                let dados = new FormData(formulario);
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: dados
+                })
+                .then(resposta => resposta.json())
+                .then(retorno => {
+                    document.getElementById("mensagemNaTela").innerHTML = retorno.mensagem;
+                    formulario.reset();
+                });
+            }
+        </script>
     </body>
 </html>
